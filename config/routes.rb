@@ -6,7 +6,10 @@ Rails.application.routes.draw do
 
   resources :performances, except: [:show]
 
-  resources :comedians
+  resources :comedians do
+    resources :comments, only: [:create]
+  end
+
   resources :bands do
     resources :comments, only: [:create]
   end

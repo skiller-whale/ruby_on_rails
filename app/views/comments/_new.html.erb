@@ -1,0 +1,15 @@
+<% if user_signed_in? %>
+  <h5>
+    Write a new comment about
+    <%= commentable.name %>
+  </h5>
+  <%= form_for [commentable, Comment.new] do |f| %>
+    <div class="form-group">
+      <%= f.text_area :content, class: "form-control" %>
+    </div>
+    <%= f.submit :Comment %>
+  <% end %>
+<% else %>
+  Only users who are signed in can write comments.
+<% end %>
+

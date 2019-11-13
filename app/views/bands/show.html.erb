@@ -14,23 +14,10 @@
 
 <h3>Comments</h3>
 
-<% if user_signed_in? %>
-  <h5>
-    Write a new comment about
-    <%= @band.name %>
-  </h5>
-  <%= form_for [@band, Comment.new] do |f| %>
-    <div class="form-group">
-      <%= f.text_area :content, class: "form-control" %>
-    </div>
-    <%= f.submit :Comment %>
-  <% end %>
-<% else %>
-  Only users who are signed in can write comments.
-<% end %>
+<%= render "comments/new", commentable: @band %>
 
 <div class="mt-4">
-  <%= render "comments/index", band: @band %>
+  <%= render "comments/index", commentable: @band %>
 </div>
 
 <div class="mt-4">
