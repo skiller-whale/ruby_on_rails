@@ -1,0 +1,2 @@
+class Comedian < ApplicationRecord
+end

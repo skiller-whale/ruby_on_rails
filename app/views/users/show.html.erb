@@ -1,0 +1,17 @@
+<p id="notice"><%= notice %></p>
+
+<h1>User: <%= @user.name %></h1>
+
+<p>
+  <%= link_to 'Back', users_path %>
+</p>
+
+<div class="mt-4">
+  <h3>Bands they have commented on</h3>
+
+  <% @bands = [] %>
+
+  <% @bands.uniq.each do |band| %>
+    <%= link_to band.name, band %>
+  <% end %>
+</div>

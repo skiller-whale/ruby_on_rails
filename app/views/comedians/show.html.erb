@@ -1,0 +1,11 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Comedian: <%= @comedian.name %></h1>
+
+<p>
+  <strong>Funniness rating:</strong>
+  <%= @comedian.funniness_rating %>
+</p>
+
+<%= link_to 'Edit', edit_comedian_path(@comedian) %> |
+<%= link_to 'Back', comedians_path %>
