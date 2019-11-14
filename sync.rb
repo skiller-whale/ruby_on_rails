@@ -52,7 +52,7 @@ end
 
 
 class FileWatcher
-  WATCHED_EXTS = [".rb"]
+  WATCHED_EXTS = [".rb", ".erb"]
   IGNORE_DIRS = [".git"]
 
   def initialize(updater: nil)
