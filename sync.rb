@@ -10,15 +10,17 @@ class FileUploader
   end
 
   def send_update(path)
+    print "Uploading: #{path}\t"
+
+    if attendance_id.empty?
+      puts "No attendance id set; file update not sent."
+      return
+    end
+
     uri = updates_uri
     data = file_json(path)
 
-    headers = {
-      "Content-Type" => "application/json",
-      "Content-Length" => data.size.to_s,
-    }
-
-    req = Net::HTTP::Post.new(uri.path, headers)
+    req = Net::HTTP::Post.new(uri.path, headers(data))
     req.body = data
 
     sender = Net::HTTP.new(uri.host, uri.port)
@@ -33,6 +35,13 @@ class FileUploader
   private
 
   attr_reader :attendance_id
+
+  def headers(data)
+    headers = {
+      "Content-Type" => "application/json",
+      "Content-Length" => data.size.to_s,
+    }
+  end
 
   def file_json(path)
     {
@@ -55,12 +64,30 @@ class FileWatcher
   WATCHED_EXTS = [".rb", ".erb"]
   IGNORE_DIRS = [".git"]
 
-  def initialize(updater: nil)
+  def initialize(updater:, directory: ".")
     @updater = updater
+    @directory = directory
     @file_hashes = Hash.new
+    # Tracks whether this is the first pass of the directory tree. If not,
+    # then any new file encountered will be treated as an update.
+    @first_pass = true
   end
 
-  def poll_directory_for_changes(dir_path)
+  def poll_for_changes(wait_time: 1)
+    while true
+      check_dir_for_changes(directory)
+      @first_pass = false
+      sleep wait_time
+    end
+  end
+
+  private
+
+  attr_reader :updater
+  attr_reader :directory
+  attr_reader :file_hashes
+
+  def check_dir_for_changes(dir_path)
     return if IGNORE_DIRS.include? File::basename(dir_path)
 
     Dir.entries(dir_path).each do |filename|
@@ -69,27 +96,16 @@ class FileWatcher
 
       path = File.join(dir_path, filename)
 
-      if File::file? path
-        if WATCHED_EXTS.include? File::extname(path)
-          update_file_hash(path)
-        end
-      else
-        poll_directory_for_changes(path)
-      end
+      # Symbolic links count as files
+      File::file?(path) ? post_file_if_changed(path) : check_dir_for_changes(path)
     end
   end
 
-  private
+  def post_file_if_changed(path)
+    return unless WATCHED_EXTS.include? File::extname(path)
 
-  attr_reader :updater
-  attr_reader :file_hashes
-
-  def update_file_hash(path)
     hashed = hash_file(path)
-    if (file_hashes.key? path) && (hashed != file_hashes[path])
-      puts "File changed, sending update: #{path}"
-      updater.send_update(path)
-    end
+    updater.send_update(path) unless @first_pass || (hashed == file_hashes[path])
 
     file_hashes[path] = hashed
   end
@@ -116,11 +132,7 @@ def swsync
 
   uploader = FileUploader.new(attendance_id)
   watcher = FileWatcher.new(updater: uploader)
-
-  while true
-    watcher.poll_directory_for_changes(".")
-    sleep 1
-  end
+  watcher.poll_for_changes
 end
 
 swsync
