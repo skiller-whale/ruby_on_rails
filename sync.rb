@@ -4,6 +4,9 @@ require "uri"
 require "json"
 
 
+SERVER_URL = ENV["SW_SERVER_URL"] || "https://train.skillerwhale.com"
+
+
 class FileUploader
   def initialize(attendance_id)
     @attendance_id = attendance_id.strip
@@ -51,11 +54,33 @@ class FileUploader
   end
 
   def updates_uri
-    URI([hostname, "attendances", attendance_id, "file_snapshots"].join("/"))
+    URI([SERVER_URL, "attendances", attendance_id, "file_snapshots"].join("/"))
+  end
+end
+
+
+class Pinger
+  def initialize(attendance_id)
+    @attendance_id = attendance_id.strip
   end
 
-  def hostname
-    ENV["SW_SERVER_URL"] || "https://train.skillerwhale.com"
+  def ping
+    return if attendance_id.empty?
+
+    uri = ping_uri
+    req = Net::HTTP::Post.new(uri.path)
+
+    sender = Net::HTTP.new(uri.host, uri.port)
+    sender.use_ssl = (uri.scheme == "https")
+    sender.request(req)
+  end
+
+  private
+
+  attr_reader :attendance_id
+
+  def ping_uri
+    URI([SERVER_URL, "attendances", attendance_id, "pings"].join("/"))
   end
 end
 
@@ -64,8 +89,9 @@ class FileWatcher
   WATCHED_EXTS = [".rb", ".erb"]
   IGNORE_DIRS = [".git"]
 
-  def initialize(updater:, directory: ".")
+  def initialize(updater:, pinger:, directory: ".")
     @updater = updater
+    @pinger = pinger
     @directory = directory
     @file_hashes = Hash.new
     # Tracks whether this is the first pass of the directory tree. If not,
@@ -75,6 +101,7 @@ class FileWatcher
 
   def poll_for_changes(wait_time: 1)
     while true
+      pinger.ping()
       check_dir_for_changes(directory)
       @first_pass = false
       sleep wait_time
@@ -84,6 +111,7 @@ class FileWatcher
   private
 
   attr_reader :updater
+  attr_reader :pinger
   attr_reader :directory
   attr_reader :file_hashes
 
@@ -116,7 +144,7 @@ class FileWatcher
 end
 
 
-def swsync
+def skiller_whale_sync
   puts "  _____ _    _ _ _            __          ___           _      "
   puts " / ____| |  (_) | |           \\ \\        / / |         | |     "
   puts "| (___ | | ___| | | ___ _ __   \\ \\  /\\  / /| |__   __ _| | ___ "
@@ -130,9 +158,11 @@ def swsync
   puts "Great! We're going to start watching this directory for changes so that the trainer can see your progress."
   puts "Hit Ctrl+C to stop."
 
+  pinger = Pinger.new(attendance_id)
   uploader = FileUploader.new(attendance_id)
-  watcher = FileWatcher.new(updater: uploader)
+  watcher = FileWatcher.new(updater: uploader, pinger: pinger)
   watcher.poll_for_changes
 end
 
-swsync
+
+skiller_whale_sync
