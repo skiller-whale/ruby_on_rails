@@ -3,6 +3,8 @@ services:
   ruby:
     build:
       context: .
+    environment:
+      - SECRET_KEY_BASE=abc
     ports:
       - 3500:3000
     stdin_open: true

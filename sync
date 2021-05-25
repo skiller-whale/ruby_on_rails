@@ -13,7 +13,7 @@ OUTPUT_LOCK = threading.Lock()
 def run_sync():
     file_uploader = FileUploader(output_lock=OUTPUT_LOCK)
     pinger = Pinger()
-    watcher = Watcher(file_uploader, base_path="app", output_lock=OUTPUT_LOCK)
+    watcher = Watcher(file_uploader, base_path=".", output_lock=OUTPUT_LOCK)
     watcher.poll_for_changes(loop_callback=pinger.ping)
 
 
