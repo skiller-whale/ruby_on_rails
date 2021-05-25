@@ -46,7 +46,7 @@ users_and_reviews.each do |item|
   u.save!
 
   item[:reviews].each do |band, review|
-    c = Comment.find_or_initialize_by(band: band, user: u)
+    c = band.comments.find_or_initialize_by(user: u)
     c.update(content: review)
     c.save!
   end

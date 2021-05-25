@@ -1,0 +1,22 @@
+version: '2.4'
+services:
+  ruby:
+    build:
+      context: .
+    ports:
+      - 3500:3000
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./app:/src/app
+      - ./db:/src/db
+  sync:
+    build:
+      context: .
+    command: python3 sync
+    volumes:
+      - ./attendance_id:/src/attendance_id
+      - ./app:/src/app
+      - ./db:/src/db
+    stdin_open: true
+    tty: true
