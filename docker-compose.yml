@@ -1,10 +1,11 @@
-version: '2.4'
+version: '3.7'
 services:
   ruby:
     build:
       context: .
     environment:
       - SECRET_KEY_BASE=abc
+      - SW_HOSTNAME
     ports:
       - 3500:3000
     stdin_open: true
