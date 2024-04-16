@@ -1,8 +1,5 @@
 FROM ruby:2.6.0-alpine
-RUN apk update && apk add --no-cache build-base git libxml2-dev libxslt-dev nodejs python3 shared-mime-info sqlite-dev tzdata yarn
-
-RUN python3 -m ensurepip
-RUN pip3 install requests
+RUN apk update && apk add --no-cache build-base git libxml2-dev libxslt-dev nodejs shared-mime-info sqlite-dev tzdata yarn
 
 RUN mkdir /src
 WORKDIR /src
