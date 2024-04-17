@@ -1,21 +1,22 @@
-FROM ruby:2.6.0-alpine
-RUN apk update && apk add --no-cache build-base git libxml2-dev libxslt-dev nodejs shared-mime-info sqlite-dev tzdata yarn
+# syntax = docker/dockerfile:1
 
-RUN mkdir /src
+# Make sure RUBY_VERSION matches the Ruby version in .ruby-version and Gemfile
+# alpine 3.19 + sqlite3 gem has issues: https://github.com/sparklemotion/sqlite3-ruby/issues/434
+ARG RUBY_VERSION=3.2.3
+FROM registry.docker.com/library/ruby:$RUBY_VERSION-alpine3.18 as base
+
+RUN apk update && apk add --no-cache build-base git  shared-mime-info sqlite-dev tzdata gcompat
+
+
+# Rails app lives here
 WORKDIR /src
 
-RUN gem install bundler -v 1.17.2
-RUN gem install rake -v 13.0.0
 COPY Gemfile Gemfile
 COPY Gemfile.lock Gemfile.lock
 RUN bundle install
-
-COPY package.json package.json
-COPY yarn.lock    yarn.lock
-RUN yarn install
 
 COPY . .
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "rake db:migrate db:seed && bundle exec puma -C config/puma.rb"]
+CMD ["sh", "-c", "rake db:prepare && bundle exec puma -C config/puma.rb"]

@@ -1,5 +1,5 @@
 class PerformancesController < ApplicationController
-  before_action :set_performance, only: [:show, :edit, :update, :destroy]
+  before_action :set_performance, only: [:edit, :update, :destroy]
 
   # GET /performances
   # GET /performances.json
