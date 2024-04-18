@@ -70,4 +70,9 @@ Rails.application.configure do
   config.action_controller.raise_on_missing_callback_actions = true
 
   config.file_watcher = ActiveSupport::EventedFileUpdateChecker
+
+  if ENV['SW_HOSTNAME'].present?
+    #disable host verification when running in the hosted environment
+    config.hosts.clear
+  end
 end

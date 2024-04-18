@@ -11,18 +11,16 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./app:/src/app
-      - ./db:/src/db
+      - .:/src
   sync:
     image: ghcr.io/skiller-whale/learnersync:0.2.1
     environment:
       SERVER_URL: https://train.skillerwhale.com/
       SW_RUNNING_IN_HOSTED_ENV:
-      WATCHER_BASE_PATH: /app/exercises
-      ATTENDANCE_ID_FILE: /app/sync/attendance_id
+      WATCHER_BASE_PATH: /src
+      ATTENDANCE_ID_FILE: /sync/attendance_id
       WATCHED_EXTS: .rb .json .js .erb
-      IGNORE_DIRS: .git tmp
+      IGNORE_DIRS: .git tmp log storage
     volumes:
-      - ./app:/src/app
-      - ./db:/src/db
-      - ./attendance_id:/app/sync/attendance_id
+      - .:/src
+      - ./attendance_id:/sync/attendance_id
